@@ -22,6 +22,10 @@ from xpipe_api import Client
 # and talk to the XPipe HTTP server on localhost. 
 client = Client()
 
+# If you want to connect to a PTB build of XPipe, you have to configure the client with that information
+# as the PTB releases use a different port
+client = Client(ptb=True)
+
 # To connect to a remote instance with an API key, use
 client = Client(token="foo", base_url = "http://servername:21721")
 ```
@@ -210,7 +214,7 @@ print(client.shell_exec(connection, "\"" + script_path + "\""))
 client.shell_stop(connection)
 ```
 
-## Tests
+## Development
 
 To run the test suite, you'll need to define the XPIPE_APIKEY env var.  This will allow the two "log in with the ApiKey 
 rather than Local method" tests to work.  Here's the recommended method for running the tests with poetry:
