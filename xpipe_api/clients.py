@@ -19,7 +19,7 @@ class Client:
     base_url: str
     raise_errors: bool
     session: Optional[str] = None
-    min_version: Version = Version("10.1-12")
+    min_version: Version = Version("14.0")
 
     def __init__(
         self, token: Optional[str] = None, base_url: Optional[str] = None, ptb: bool = False, raise_errors: bool = True
@@ -36,7 +36,7 @@ class Client:
             except PermissionError:
                 raise NoTokenFoundException("Bad permissions on xpipe_auth: is the daemon running as another user?")
             except Exception as e:
-                raise NoTokenFoundException(f"No auth provided and couldn't load xpipe_auth: {e!r}")
+                raise NoTokenFoundException(f"No auth provided and couldn't load xpipe_auth: {e!r}. Is the XPipe daemon running?")
 
         if not base_url:
             base_url = "http://127.0.0.1:21722" if ptb else "http://127.0.0.1:21721"
@@ -57,11 +57,12 @@ class Client:
         session = response.get("sessionToken", None)
         if session:
             self.session = session
+            daemon_version = self.daemon_version()["version"]
+            assert (
+                    daemon_version == "dev" or Version(daemon_version) >= self.min_version
+            ), f"xpipe_api requires XPipe of at least {self.min_version}"
         else:
             raise AuthFailedException(json.dumps(response))
-        assert (
-            Version(self.daemon_version()["version"]) >= self.min_version
-        ), f"xpipe_api requires XPipe of at least {self.min_version}"
 
     def _post(self, *args, **kwargs) -> requests.Response:
         if not self.session:
@@ -124,11 +125,19 @@ class Client:
         response = self.post(endpoint, json=data)
         return json.loads(response).get("infos", [])
 
-    def connection_add(self, name: str, conn_data: dict, validate: bool = False) -> str:
+    def connection_add(self, name: str, conn_data: dict, validate: bool = False, category: str = None) -> str:
         endpoint = f"{self.base_url}/connection/add"
         data = {"name": name, "data": conn_data, "validate": validate}
+        if category:
+            data["category"] = category
         response = self.post(endpoint, json=data)
         return json.loads(response)["connection"]
+
+    def category_add(self, name: str, parent: str) -> str:
+        endpoint = f"{self.base_url}/category/add"
+        data = {"name": name, "parent": parent}
+        response = self.post(endpoint, json=data)
+        return json.loads(response)["category"]
 
     def connection_remove(self, uuids: Union[str, List[str]]):
         endpoint = f"{self.base_url}/connection/remove"
@@ -316,11 +325,19 @@ class AsyncClient(Client):
         response = await self.post(endpoint, json=data)
         return json.loads(response).get("infos", [])
 
-    async def connection_add(self, name: str, conn_data: dict, validate: bool = False) -> str:
+    async def connection_add(self, name: str, conn_data: dict, validate: bool = False, category: str = None) -> str:
         endpoint = f"{self.base_url}/connection/add"
         data = {"name": name, "data": conn_data, "validate": validate}
+        if category:
+            data["category"] = category
         response = await self.post(endpoint, json=data)
         return json.loads(response)["connection"]
+
+    async def category_add(self, name: str, parent: str) -> str:
+        endpoint = f"{self.base_url}/category/add"
+        data = {"name": name, "parent": parent}
+        response = await self.post(endpoint, json=data)
+        return json.loads(response)["category"]
 
     async def connection_remove(self, uuids: Union[str, List[str]]):
         endpoint = f"{self.base_url}/connection/remove"
