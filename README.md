@@ -3,7 +3,7 @@
 [![GitHub license](https://img.shields.io/github/license/xpipe-io/xpipe-python-api.svg)](https://github.com/xpipe-io/xpipe-python-api/blob/master/LICENSE)
 [![PyPI version](https://img.shields.io/pypi/v/xpipe_api)](https://pypi.org/project/xpipe_api/)
 
-Python client for the XPipe API. This library is a wrapper for the raw [HTTP API](https://github.com/xpipe-io/xpipe/blob/master/openapi.yaml) and intended to make working with it more convenient. You can find the raw API reference at http://localhost:21721 if your XPipe desktop application is running. XPipe contains a local webserver that includes the API docs as well.
+Python client for the XPipe API. This library is a wrapper for the raw [HTTP API](https://github.com/xpipe-io/xpipe/blob/master/openapi.yaml) and intended to make working with it more convenient.
 
 ```bash
 python3 -m pip install xpipe_api
