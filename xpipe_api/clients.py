@@ -246,11 +246,13 @@ class AsyncClient(Client):
         session_token = parsed.get("sessionToken", None)
         if session_token:
             self.session = session_token
+            daemon_version = (await self.daemon_version())["version"]
+            assert (
+                    daemon_version == "dev" or Version(daemon_version) >= self.min_version
+            ), f"xpipe_api requires XPipe of at least {self.min_version}"
         else:
             raise AuthFailedException(json.dumps(parsed))
-        assert (
-            Version((await self.daemon_version())["version"]) >= self.min_version
-        ), f"xpipe_api requires XPipe of at least {self.min_version}"
+
 
     async def _post(self, *args, **kwargs) -> aiohttp.ClientResponse:
         if not self.session:

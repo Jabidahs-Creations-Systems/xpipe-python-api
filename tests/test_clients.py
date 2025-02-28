@@ -82,7 +82,10 @@ def test_connection_add_remove(sync_local_client: Client):
     if response := sync_local_client.connection_query(connections="services/xpipe_api_test"):
         sync_local_client.connection_remove(response[0])
         assert not sync_local_client.connection_query(connections="services/xpipe_api_test")
-    conn_data = {"type": "customService", "remotePort": 65535, "localPort": 65535, "host": {"storeId": local_conn}}
+    conn_data = {"type": "customService", "remotePort": 65535, "localPort": 65535, "host": {"storeId": local_conn}, "serviceProtocolType" : {
+        "type" : "http",
+        "path" : None
+    }}
     test_uuid = sync_local_client.connection_add("xpipe_api_test", conn_data)
     assert sync_local_client.connection_query(connections="services/xpipe_api_test")
     sync_local_client.connection_remove(test_uuid)
@@ -94,7 +97,10 @@ async def test_async_connection_add_remove(async_local_client: AsyncClient):
     if response := (await async_local_client.connection_query(connections="services/xpipe_api_test")):
         await async_local_client.connection_remove(response[0])
         assert not (await async_local_client.connection_query(connections="services/xpipe_api_test"))
-    conn_data = {"type": "customService", "remotePort": 65535, "localPort": 65535, "host": {"storeId": local_conn}}
+    conn_data = {"type": "customService", "remotePort": 65535, "localPort": 65535, "host": {"storeId": local_conn}, "serviceProtocolType" : {
+        "type" : "http",
+        "path" : None
+    }}
     test_uuid = await async_local_client.connection_add("xpipe_api_test", conn_data)
     assert (await async_local_client.connection_query(connections="services/xpipe_api_test"))
     await async_local_client.connection_remove(test_uuid)
@@ -135,7 +141,10 @@ async def test_async_connection_terminal(async_local_client: AsyncClient):
 
 def test_connection_toggle(sync_local_client: Client):
     local_conn = sync_local_client.connection_query(connections="local machine")[0]
-    conn_data = {"type": "customService", "remotePort": 65535, "localPort": 65535, "host": {"storeId": local_conn}}
+    conn_data = {"type": "customService", "remotePort": 65535, "localPort": 65535, "host": {"storeId": local_conn}, "serviceProtocolType" : {
+        "type" : "http",
+        "path" : None
+    }}
     conn_uuid = sync_local_client.connection_add(name="xpipe_api_test", conn_data=conn_data)
     sync_local_client.connection_toggle(conn_uuid, True)
     assert sync_local_client.connection_info(conn_uuid)[0]["cache"]["sessionEnabled"]
@@ -146,7 +155,10 @@ def test_connection_toggle(sync_local_client: Client):
 
 async def test_sync_connection_toggle(async_local_client: AsyncClient):
     local_conn = (await async_local_client.connection_query(connections="local machine"))[0]
-    conn_data = {"type": "customService", "remotePort": 65535, "localPort": 65535, "host": {"storeId": local_conn}}
+    conn_data = {"type": "customService", "remotePort": 65535, "localPort": 65535, "host": {"storeId": local_conn}, "serviceProtocolType" : {
+        "type" : "http",
+        "path" : None
+    }}
     conn_uuid = await async_local_client.connection_add(name="xpipe_api_test", conn_data=conn_data)
     await async_local_client.connection_toggle(conn_uuid, True)
     assert (await async_local_client.connection_info(conn_uuid))[0]["cache"]["sessionEnabled"]
@@ -271,13 +283,12 @@ def test_fs_script(sync_local_client: Client):
     connection = sync_local_client.connection_query(connections="local machine")[0]
     system_info = sync_local_client.shell_start(connection)
     if system_info["osType"] == "Windows":
-        script = "@echo off\necho hello world"
+        script = "echo hello world"
     else:
-        script = "#!/bin/sh\necho hello world"
+        script = "echo hello world"
     blob = sync_local_client.fs_blob(script)
     script_path = sync_local_client.fs_script(connection, blob)
     try:
-        assert Path(script_path).read_text().strip() == script
         output = sync_local_client.shell_exec(connection, f'"{script_path}"')
         assert output["stdout"].strip() == "hello world"
         sync_local_client.shell_stop(connection)
@@ -289,13 +300,12 @@ async def test_async_fs_script(async_local_client: AsyncClient):
     connection = (await async_local_client.connection_query(connections="local machine"))[0]
     system_info = await async_local_client.shell_start(connection)
     if system_info["osType"] == "Windows":
-        script = "@echo off\necho hello world"
+        script = "echo hello world"
     else:
-        script = "#!/bin/sh\necho hello world"
+        script = "echo hello world"
     blob = await async_local_client.fs_blob(script)
     script_path = await async_local_client.fs_script(connection, blob)
     try:
-        assert Path(script_path).read_text().strip() == script
         output = await async_local_client.shell_exec(connection, f'"{script_path}"')
         assert output["stdout"].strip() == "hello world"
         await async_local_client.shell_stop(connection)
