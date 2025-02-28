@@ -19,7 +19,7 @@ class Client:
     base_url: str
     raise_errors: bool
     session: Optional[str] = None
-    min_version: Version = Version("14.0")
+    min_version: Version = Version("15.2")
 
     def __init__(
         self, token: Optional[str] = None, base_url: Optional[str] = None, ptb: bool = False, raise_errors: bool = True
@@ -110,7 +110,7 @@ class Client:
     def get(self, *args, **kwargs) -> bytes:
         return self._get(*args, **kwargs).content
 
-    def connection_query(self, categories: str = "*", connections: str = "*", types: str = "*") -> List[str]:
+    def connection_query(self, categories: str = "**", connections: str = "**", types: str = "*") -> List[str]:
         endpoint = f"{self.base_url}/connection/query"
         data = {"categoryFilter": categories, "connectionFilter": connections, "typeFilter": types}
         response = self.post(endpoint, json=data)
@@ -170,7 +170,7 @@ class Client:
         data = {"connection": connection}
         self.post(endpoint, json=data)
 
-    def get_connections(self, categories: str = "*", connections: str = "*", types: str = "*") -> List[dict]:
+    def get_connections(self, categories: str = "**", connections: str = "**", types: str = "*") -> List[dict]:
         """Convenience method to chain connection/query with connection/info"""
         uuids = self.connection_query(categories, connections, types)
         return self.connection_info(uuids) if uuids else []
@@ -310,7 +310,7 @@ class AsyncClient(Client):
         resp = await self._get(*args, **kwargs)
         return await resp.read()
 
-    async def connection_query(self, categories: str = "*", connections: str = "*", types: str = "*") -> List[str]:
+    async def connection_query(self, categories: str = "**", connections: str = "**", types: str = "*") -> List[str]:
         endpoint = f"{self.base_url}/connection/query"
         data = {"categoryFilter": categories, "connectionFilter": connections, "typeFilter": types}
         response = await self.post(endpoint, json=data)
@@ -370,7 +370,7 @@ class AsyncClient(Client):
         data = {"connection": connection}
         await self.post(endpoint, json=data)
 
-    async def get_connections(self, categories: str = "*", connections: str = "*", types: str = "*") -> List[dict]:
+    async def get_connections(self, categories: str = "**", connections: str = "**", types: str = "*") -> List[dict]:
         uuids = await self.connection_query(categories, connections, types)
         return (await self.connection_info(uuids)) if uuids else []
 
